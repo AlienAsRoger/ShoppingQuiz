@@ -2,7 +2,10 @@ package com.developer4droid.shoppingquiz.inject.components;
 
 import com.developer4droid.shoppingquiz.inject.AppModule;
 import com.developer4droid.shoppingquiz.inject.NetworkModule;
+import com.developer4droid.shoppingquiz.network.DataLoaderImpl;
+import com.developer4droid.shoppingquiz.ui.activities.BaseActivity;
 import com.developer4droid.shoppingquiz.viewmodel.BaseViewModel;
+import com.developer4droid.shoppingquiz.viewmodel.MainViewModel;
 import dagger.Component;
 
 import javax.inject.Singleton;
@@ -21,6 +24,11 @@ import javax.inject.Singleton;
 })
 public interface GlobalComponent {
 
+	void inject(BaseActivity model);
 
 	void inject(BaseViewModel model);
+
+	void inject(MainViewModel model);
+
+	void inject(DataLoaderImpl dataLoader);
 }
