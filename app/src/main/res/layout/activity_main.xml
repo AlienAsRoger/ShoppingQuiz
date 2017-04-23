@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:tools="http://schemas.android.com/tools"
+	>
+
+	<data>
+
+		<import
+			type="android.view.View"
+			alias="v"
+			/>
+
+		<variable
+			name="model"
+			type="com.developer4droid.shoppingquiz.viewmodel.MainViewModel"
+			/>
+	</data>
+
+	<FrameLayout
+		android:layout_width="match_parent"
+		android:layout_height="match_parent"
+		tools:context="com.developer4droid.radiostations.ui.activity.CategoriesActivity"
+		>
+
+
+	
+
+	</FrameLayout>
+</layout>
