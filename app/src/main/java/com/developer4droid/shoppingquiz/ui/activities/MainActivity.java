@@ -1,23 +1,25 @@
 package com.developer4droid.shoppingquiz.ui.activities;
 
+import android.content.Intent;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.v4.app.FragmentTransaction;
 import butterknife.ButterKnife;
 import com.developer4droid.shoppingquiz.R;
+import com.developer4droid.shoppingquiz.background.BackgroundTimerService;
 import com.developer4droid.shoppingquiz.databinding.ActivityMainBinding;
 import com.developer4droid.shoppingquiz.model.QuizItem;
 import com.developer4droid.shoppingquiz.ui.fragments.QuizTryFragment;
 import com.developer4droid.shoppingquiz.ui.interfaces.MainContract;
 import com.developer4droid.shoppingquiz.viewmodel.MainViewModel;
 
-import java.util.List;
-
 public class MainActivity extends BaseActivity implements MainContract.ViewFrame{
 
 
+	public static final String STARTED = "started";
 	private ActivityMainBinding binding;
 	private MainViewModel viewModel;
+	private boolean isQuizStarted;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -26,6 +28,10 @@ public class MainActivity extends BaseActivity implements MainContract.ViewFrame
 
 		// Use butter knife for fast binding
 		ButterKnife.bind(this);
+
+		if (savedInstanceState != null) {
+			isQuizStarted = savedInstanceState.getBoolean(STARTED);
+		}
 
 		init();
 	}
@@ -46,6 +52,13 @@ public class MainActivity extends BaseActivity implements MainContract.ViewFrame
 		viewModel.unRegister();
 	}
 
+	@Override
+	protected void onSaveInstanceState(Bundle outState) {
+		super.onSaveInstanceState(outState);
+
+		outState.putBoolean(STARTED, viewModel.isQuizStarted());
+	}
+
 	// ------------- //
 	// Local methods //
 	// ------------- //
@@ -55,6 +68,7 @@ public class MainActivity extends BaseActivity implements MainContract.ViewFrame
 	 */
 	private void init() {
 		viewModel = new MainViewModel();
+		viewModel.setQuizStarted(isQuizStarted);
 	}
 
 	// ------------------------ //
@@ -62,8 +76,11 @@ public class MainActivity extends BaseActivity implements MainContract.ViewFrame
 	// ------------------------ //
 
 	@Override
-	public void startQuiz(List<QuizItem> quizzesToSolve) {
-		QuizItem quizItem = quizzesToSolve.get(0);
+	public void startQuiz(QuizItem quizItem) {
+		// start background timer
+		startService(new Intent(this, BackgroundTimerService.class));
+
+		// open fragment with quiz
 		FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
 		transaction.replace(R.id.fragment_container, QuizTryFragment.createInstance(quizItem));
 		transaction.commitAllowingStateLoss();

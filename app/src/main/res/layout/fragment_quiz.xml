@@ -38,6 +38,15 @@
 			android:minHeight="200dp"
 			/>
 
+		<!--Timer-->
+		<TextView
+			android:layout_width="wrap_content"
+			android:layout_height="match_parent"
+			android:textSize="@dimen/default_text_size"
+			android:text="@{model.timer}"
+			android:visibility="@{model.timerActive ? v.VISIBLE : v.GONE}"
+			/>
+
 		<!--Submit Button-->
 		<Button
 			android:id="@+id/submit_button"
@@ -45,6 +54,7 @@
 			android:layout_height="wrap_content"
 			android:text="@string/submit"
 			android:onClick="@{() -> model.submitAnswer()}"
+			android:enabled="@{model.answerSelected ? true : false}"
 			/>
 
 	</LinearLayout>

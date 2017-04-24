@@ -1,5 +1,6 @@
 package com.developer4droid.shoppingquiz.inject.components;
 
+import com.developer4droid.shoppingquiz.background.BackgroundTimerService;
 import com.developer4droid.shoppingquiz.inject.AppModule;
 import com.developer4droid.shoppingquiz.inject.NetworkModule;
 import com.developer4droid.shoppingquiz.network.DataLoaderImpl;
@@ -34,4 +35,6 @@ public interface GlobalComponent {
 	void inject(QuizTryViewModel model);
 
 	void inject(DataLoaderImpl dataLoader);
+
+	void inject(BackgroundTimerService inject);
 }

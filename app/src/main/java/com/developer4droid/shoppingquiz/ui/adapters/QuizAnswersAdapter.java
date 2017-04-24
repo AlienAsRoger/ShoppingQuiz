@@ -44,6 +44,12 @@ public class QuizAnswersAdapter extends RecyclerView.Adapter<QuizAnswersAdapter.
 	}
 
 	@Override
+	public void onViewDetachedFromWindow(QuizViewHolder holder) {
+		super.onViewDetachedFromWindow(holder);
+		holder.onDetached();
+	}
+
+	@Override
 	public int getItemCount() {
 		return itemsList == null ? 0 : itemsList.size();
 	}
@@ -74,6 +80,10 @@ public class QuizAnswersAdapter extends RecyclerView.Adapter<QuizAnswersAdapter.
 			Glide.with(binding.imageView.getContext())
 					.load(uri)
 					.into(binding.imageView);
+		}
+
+		public void onDetached() {
+			viewModel.unRegister();
 		}
 	}
 }
