@@ -11,11 +11,11 @@ import java.util.List;
  * Time: 7:53
  */
 
-public interface QuizContract {
+public interface MainContract {
 
 	interface ViewFrame {
 
-		void updateData(List<QuizItem> itemList);
+		void startQuiz(List<QuizItem> quizzesToSolve);
 	}
 
 	interface ActionListener {

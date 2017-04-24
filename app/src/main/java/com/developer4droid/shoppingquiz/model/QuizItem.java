@@ -1,5 +1,9 @@
 package com.developer4droid.shoppingquiz.model;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -9,7 +13,7 @@ import java.util.List;
  * Time: 7:52
  */
 
-public class QuizItem {
+public class QuizItem implements Parcelable {
 	/*
       "name": "365 Organic Frosted Flakes Cereal",
       "urls": [
@@ -30,4 +34,43 @@ public class QuizItem {
 	public List<String> getUrls() {
 		return urls;
 	}
+
+	protected QuizItem(Parcel in) {
+		name = in.readString();
+		if (in.readByte() == 0x01) {
+			urls = new ArrayList<String>();
+			in.readList(urls, String.class.getClassLoader());
+		} else {
+			urls = null;
+		}
+	}
+
+	@Override
+	public int describeContents() {
+		return 0;
+	}
+
+	@Override
+	public void writeToParcel(Parcel dest, int flags) {
+		dest.writeString(name);
+		if (urls == null) {
+			dest.writeByte((byte) (0x00));
+		} else {
+			dest.writeByte((byte) (0x01));
+			dest.writeList(urls);
+		}
+	}
+
+	@SuppressWarnings("unused")
+	public static final Parcelable.Creator<QuizItem> CREATOR = new Parcelable.Creator<QuizItem>() {
+		@Override
+		public QuizItem createFromParcel(Parcel in) {
+			return new QuizItem(in);
+		}
+
+		@Override
+		public QuizItem[] newArray(int size) {
+			return new QuizItem[size];
+		}
+	};
 }

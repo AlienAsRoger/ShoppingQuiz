@@ -1,3 +1,5 @@
 <resources>
 	<dimen name="fab_margin">16dp</dimen>
+	<dimen name="image_size">150dp</dimen>
+	<dimen name="big_text_size">21sp</dimen>
 </resources>

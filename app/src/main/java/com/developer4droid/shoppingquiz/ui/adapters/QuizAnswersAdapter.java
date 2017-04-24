@@ -4,10 +4,11 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import com.bumptech.glide.Glide;
 import com.developer4droid.shoppingquiz.R;
 import com.developer4droid.shoppingquiz.databinding.QuizGridItemBinding;
-import com.developer4droid.shoppingquiz.model.QuizItem;
-import com.developer4droid.shoppingquiz.viewmodel.QuizViewModel;
+import com.developer4droid.shoppingquiz.ui.interfaces.ImageLoader;
+import com.developer4droid.shoppingquiz.viewmodel.QuizAnswerViewModel;
 
 import java.util.List;
 
@@ -18,11 +19,11 @@ import java.util.List;
  * Time: 10:22
  */
 
-public class ImagesAdapter extends RecyclerView.Adapter<ImagesAdapter.QuizViewHolder> {
+public class QuizAnswersAdapter extends RecyclerView.Adapter<QuizAnswersAdapter.QuizViewHolder> {
 
-	private List<QuizItem> itemsList;
+	private List<String> itemsList;
 
-	public ImagesAdapter(List<QuizItem> itemsList) {
+	public QuizAnswersAdapter(List<String> itemsList) {
 		this.itemsList = itemsList;
 	}
 
@@ -30,7 +31,7 @@ public class ImagesAdapter extends RecyclerView.Adapter<ImagesAdapter.QuizViewHo
 	public QuizViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
 		LayoutInflater inflater = LayoutInflater.from(parent.getContext());
 		View itemView = inflater.inflate(R.layout.quiz_grid_item, parent, false);
-		QuizViewModel viewModel = new QuizViewModel();
+		QuizAnswerViewModel viewModel = new QuizAnswerViewModel();
 		QuizGridItemBinding binding = QuizGridItemBinding.bind(itemView);
 		binding.setModel(viewModel);
 
@@ -47,25 +48,32 @@ public class ImagesAdapter extends RecyclerView.Adapter<ImagesAdapter.QuizViewHo
 		return itemsList == null ? 0 : itemsList.size();
 	}
 
-	public void updateItems(List<QuizItem> itemList) {
+	public void updateItems(List<String> itemList) {
 		this.itemsList = itemList;
 		notifyDataSetChanged();
 	}
 
-	static class QuizViewHolder extends RecyclerView.ViewHolder {
+	static class QuizViewHolder extends RecyclerView.ViewHolder implements ImageLoader {
 
 		private QuizGridItemBinding binding;
-		private QuizViewModel viewModel;
+		private QuizAnswerViewModel viewModel;
 
-		public QuizViewHolder(View itemView, QuizGridItemBinding binding, QuizViewModel viewModel) {
+		public QuizViewHolder(View itemView, QuizGridItemBinding binding, QuizAnswerViewModel viewModel) {
 			super(itemView);
 			this.binding = binding;
 			this.viewModel = viewModel;
 		}
 
-		public void setItem(QuizItem quiz) {
-			viewModel.setQuiz(quiz);
+		public void setItem(String answer) {
+			viewModel.setAnswer(answer, this);
 			binding.executePendingBindings();
+		}
+
+		@Override
+		public void loadImage(String uri) {
+			Glide.with(binding.imageView.getContext())
+					.load(uri)
+					.into(binding.imageView);
 		}
 	}
 }

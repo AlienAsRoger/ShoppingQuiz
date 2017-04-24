@@ -16,7 +16,7 @@
 			/>
 	</data>
 
-	<RelativeLayout
+	<FrameLayout
 		android:layout_width="match_parent"
 		android:layout_height="match_parent"
 		tools:context="com.developer4droid.shoppingquiz.ui.activities.MainActivity"
@@ -27,33 +27,30 @@
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
 			android:text="@string/start_quiz"
-			android:layout_centerInParent="true"
+			android:layout_gravity="center"
+			android:visibility="@{model.loading? v.GONE : model.quizStarted ? v.GONE : v.VISIBLE}"
+			android:enabled="@{model.loading? false : true}"
 			android:onClick="@{() -> model.startQuiz()}"
 			/>
 
-		<!--Prompt-->
-		<TextView
+		<!--Loading View-->
+		<ProgressBar
+			android:id="@+id/loading_view"
+			style="@style/Base.Widget.AppCompat.ProgressBar"
+			android:indeterminate="true"
+			android:layout_width="48dp"
+			android:layout_height="48dp"
+			android:visibility="@{model.loading? v.VISIBLE : v.GONE}"
+			tools:visibility="invisible"
+			android:layout_gravity="center"
+			/>
+
+		<!--Fragment container-->
+		<FrameLayout
+			android:id="@+id/fragment_container"
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
 			/>
-		<!--android:text="@{mode.prompt}"-->
 
-		<!--Images adapter-->
-		<android.support.v7.widget.RecyclerView
-			android:id="@+id/recycler_view"
-			android:layout_width="wrap_content"
-			android:layout_height="wrap_content"
-			/>
-
-		<!--Submit Button-->
-		<Button
-			android:id="@+id/submit_button"
-			android:layout_width="wrap_content"
-			android:layout_height="wrap_content"
-			android:layout_below="@+id/recycler_view"
-			android:text="@string/submit"
-			android:layout_centerHorizontal="true"
-			/>
-
-	</RelativeLayout>
+	</FrameLayout>
 </layout>

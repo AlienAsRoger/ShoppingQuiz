@@ -6,6 +6,7 @@ import com.developer4droid.shoppingquiz.network.DataLoaderImpl;
 import com.developer4droid.shoppingquiz.ui.activities.BaseActivity;
 import com.developer4droid.shoppingquiz.viewmodel.BaseViewModel;
 import com.developer4droid.shoppingquiz.viewmodel.MainViewModel;
+import com.developer4droid.shoppingquiz.viewmodel.QuizTryViewModel;
 import dagger.Component;
 
 import javax.inject.Singleton;
@@ -29,6 +30,8 @@ public interface GlobalComponent {
 	void inject(BaseViewModel model);
 
 	void inject(MainViewModel model);
+	
+	void inject(QuizTryViewModel model);
 
 	void inject(DataLoaderImpl dataLoader);
 }

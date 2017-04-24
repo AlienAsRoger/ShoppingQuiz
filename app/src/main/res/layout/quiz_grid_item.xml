@@ -12,17 +12,23 @@
 
 		<variable
 			name="model"
-			type="com.developer4droid.shoppingquiz.viewmodel.QuizViewModel"
+			type="com.developer4droid.shoppingquiz.viewmodel.QuizAnswerViewModel"
 			/>
 	</data>
 
 	<!--Image-->
 	<ImageView
-		android:layout_width="wrap_content"
-		android:layout_height="wrap_content"
+		android:id="@+id/image_view"
+		android:layout_width="@dimen/image_size"
+		android:layout_height="@dimen/image_size"
+		tools:src="@mipmap/ic_launcher"
+		android:onClick="@{() -> model.selectAnswer()}"
 		style="@style/ImageStyle"
-		android:onClick="@{() -> model.selectResponse()}"
+		android:scaleType="fitXY"
+		android:adjustViewBounds="true"
+		android:layout_margin="8dp"
+		android:padding="1dp"
+		android:background="@{model.selected ? @color/selected : @color/transparent}"
 		/>
-
 
 </layout>
