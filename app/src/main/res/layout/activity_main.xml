@@ -16,18 +16,31 @@
 			/>
 	</data>
 
-	<FrameLayout
+	<RelativeLayout
 		android:layout_width="match_parent"
 		android:layout_height="match_parent"
 		tools:context="com.developer4droid.shoppingquiz.ui.activities.MainActivity"
 		>
 
-		<!--Start Quiz-->
-		<Button
+		<!--Results-->
+		<TextView
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
-			android:text="@string/start_quiz"
-			android:layout_gravity="center"
+			android:text="@{model.result}"
+			android:visibility="@{model.quizFinished ? v.VISIBLE : v.GONE}"
+			android:textSize="@dimen/big_text_size"
+			android:layout_above="@+id/start_quiz_button"
+			android:layout_centerHorizontal="true"
+			android:paddingBottom="50dp"
+			/>
+
+		<!--Start Quiz-->
+		<Button
+			android:id="@+id/start_quiz_button"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="@{model.quizFinished ? @string/retake_quiz: @string/start_quiz}"
+			android:layout_centerInParent="true"
 			android:visibility="@{model.loading? v.GONE : model.quizStarted ? v.GONE : v.VISIBLE}"
 			android:enabled="@{model.loading? false : true}"
 			android:onClick="@{() -> model.startQuiz()}"
@@ -42,7 +55,7 @@
 			android:layout_height="48dp"
 			android:visibility="@{model.loading? v.VISIBLE : v.GONE}"
 			tools:visibility="invisible"
-			android:layout_gravity="center"
+			android:layout_centerInParent="true"
 			/>
 
 		<!--Fragment container-->
@@ -52,5 +65,5 @@
 			android:layout_height="wrap_content"
 			/>
 
-	</FrameLayout>
+	</RelativeLayout>
 </layout>

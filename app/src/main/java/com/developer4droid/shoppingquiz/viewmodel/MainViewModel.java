@@ -1,12 +1,11 @@
 package com.developer4droid.shoppingquiz.viewmodel;
 
 import android.databinding.Bindable;
-import android.util.Log;
 import com.developer4droid.shoppingquiz.BR;
 import com.developer4droid.shoppingquiz.application.MyApplication;
+import com.developer4droid.shoppingquiz.events.LoadNextQuizEvent;
 import com.developer4droid.shoppingquiz.events.SubmitAnswerEvent;
 import com.developer4droid.shoppingquiz.events.TimerFinishedEvent;
-import com.developer4droid.shoppingquiz.events.TimerUpdateEvent;
 import com.developer4droid.shoppingquiz.model.QuizItem;
 import com.developer4droid.shoppingquiz.network.DataLoader;
 import com.developer4droid.shoppingquiz.network.DataReceiver;
@@ -15,8 +14,7 @@ import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
 import javax.inject.Inject;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created with IntelliJ IDEA.
@@ -27,7 +25,7 @@ import java.util.List;
 
 public class MainViewModel extends BaseViewModel implements MainContract.ActionListener, DataReceiver<List<QuizItem>> {
 
-	private static final int SIZE = 20;
+	private static final int QUESTIONS_COUNT = 20;
 	private static final int CORRECT = 0; // first one is always correct
 
 	@Inject
@@ -37,11 +35,16 @@ public class MainViewModel extends BaseViewModel implements MainContract.ActionL
 	private List<QuizItem> quizItems;
 	private boolean isLoading;
 	private boolean isQuizStarted;
+	private boolean isQuizFinished;
 	private int currentQuizItem;
-	private List<QuizItem> quizzesToSolve;
+	private int correctAnswersCnt;
+	private int triesCnt; // how many quizzes has been tried
+	private HashMap<Integer, Boolean> quizTryMap; // mark quiz numbers as tried to avoid repetition
+	private String result;
 
 	public MainViewModel() {
 		MyApplication.getInstance().getGlobalComponent().inject(this);
+		quizTryMap = new HashMap<>();
 	}
 
 	// ------------- //
@@ -68,23 +71,91 @@ public class MainViewModel extends BaseViewModel implements MainContract.ActionL
 		notifyPropertyChanged(BR.quizStarted);
 	}
 
+	@Bindable
+	public boolean isQuizFinished() {
+		return isQuizFinished;
+	}
+
+	public void setQuizFinished(boolean quizFinished) {
+		isQuizFinished = quizFinished;
+		notifyPropertyChanged(BR.quizFinished);
+	}
+
+	@Bindable
+	public String getResult() {
+		return result;
+	}
+
+	private void setResult(String result) {
+		this.result = result;
+		notifyPropertyChanged(BR.result);
+	}
+
 	/**
 	 * Start Quiz and 2 min to solve the quiz
-	 * Select random 20 // TODO
+	 * Select random 20
 	 */
 	public void startQuiz() {
-		if (!isQuizStarted) {
-			quizzesToSolve = new ArrayList<>();
-			for (int i = 0; i < SIZE; i++) { // TODO get random SIZE
-				QuizItem quizItem = quizItems.get(i);
-				quizzesToSolve.add(quizItem);
-			}
+		correctAnswersCnt = 0;
 
-			currentQuizItem = 0;
+		if (!isQuizStarted) {
+			generateRandomQuestions();
 		}
 
 		setQuizStarted(true);
-		viewFrame.startQuiz(quizzesToSolve.get(currentQuizItem));
+		setQuizFinished(false);
+		viewFrame.startTimer();
+
+		openQuiz();
+	}
+
+	private void openQuiz() {
+		// mark first one as tried
+		quizTryMap.put(currentQuizItem, true);
+
+		viewFrame.startQuiz(quizItems.get(currentQuizItem));
+	}
+
+	private void generateRandomQuestions() {
+		Random random = new Random();
+		for (int i = 0; i < QUESTIONS_COUNT; i++) {
+			// get random number
+			int quizNumber = random.nextInt(quizItems.size());
+			// add this number to map marked as not tried
+			quizTryMap.put(quizNumber, false);
+
+			// if we haven't selected first
+			if (currentQuizItem == 0) {
+				currentQuizItem = quizNumber;
+			}
+		}
+	}
+
+	private void loadNextQuiz() {
+		if (triesCnt >= QUESTIONS_COUNT) {
+			onFinished();
+			return;
+		}
+
+		for (Map.Entry<Integer, Boolean> entry : quizTryMap.entrySet()) {
+			Boolean isQuizTried = entry.getValue();
+			if (isQuizTried) {
+				continue;
+			}
+
+			// set quiz number
+			currentQuizItem = entry.getKey();
+		}
+
+		openQuiz();
+	}
+
+	private void onFinished() {
+		setResult("Final score " + correctAnswersCnt + "/" + QUESTIONS_COUNT);    // TODO put in xml and use resources
+		setQuizStarted(false);
+		setQuizFinished(true);
+
+		viewFrame.showResults();
 	}
 
 	// ------------------------ //
@@ -95,8 +166,10 @@ public class MainViewModel extends BaseViewModel implements MainContract.ActionL
 	public void onResume(MainContract.ViewFrame viewFrame) {
 		this.viewFrame = viewFrame;
 
-		setLoading(true);
-		dataLoader.loadQuizzes(this);
+		if (!isQuizStarted) {
+			setLoading(true);
+			dataLoader.loadQuizzes(this);
+		}
 		registerBus();
 	}
 
@@ -114,28 +187,28 @@ public class MainViewModel extends BaseViewModel implements MainContract.ActionL
 	@Subscribe(threadMode = ThreadMode.MAIN)
 	public void onEvent(SubmitAnswerEvent event) {
 		// get current solved quiz
-		QuizItem quizItem = quizzesToSolve.get(currentQuizItem);
+		QuizItem quizItem = quizItems.get(currentQuizItem);
 		String correctAnswer = quizItem.getUrls().get(CORRECT);
 
 		if (event.getSelectedAnswer().equals(correctAnswer)) {
-			Log.d("TEST", "onEvent: correct");
-		} else {
-			Log.d("TEST", "onEvent: wrong");
+			correctAnswersCnt++;
 		}
+		triesCnt++;
+		quizTryMap.put(currentQuizItem, true);
+
+		loadNextQuiz();
 	}
 
 	@SuppressWarnings("unused")
 	@Subscribe(threadMode = ThreadMode.MAIN)
-	public void onEvent(TimerUpdateEvent event) {
-		Log.d("TEST", "TimerUpdateEvent: ");
-
+	public void onEvent(LoadNextQuizEvent event) {
+		loadNextQuiz();
 	}
 
 	@SuppressWarnings("unused")
 	@Subscribe(threadMode = ThreadMode.MAIN)
 	public void onEvent(TimerFinishedEvent event) {
-		Log.d("TEST", "TimerFinishedEvent: ");
-
+		onFinished();
 	}
 
 

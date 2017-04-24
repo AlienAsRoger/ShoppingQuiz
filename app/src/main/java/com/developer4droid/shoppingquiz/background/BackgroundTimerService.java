@@ -15,6 +15,7 @@ import javax.inject.Inject;
 public class BackgroundTimerService extends Service {
 
 	private static final long QUIZ_TIME = 2 * 60 * 1000; // 2 min
+//	private static final long QUIZ_TIME = 5 * 1000; // test time
 	private static final long PERIOD = 1000; // 1 sec
 
 	@Inject
@@ -36,7 +37,7 @@ public class BackgroundTimerService extends Service {
 	}
 
 	@Override
-	public int onStartCommand(Intent intent, int flags, int startId) {
+	public int onStartCommand(Intent intent, int flags, final int startId) {
 		new CountDownTimer(QUIZ_TIME, PERIOD) {
 
 			public void onTick(long millisUntilFinished) {
@@ -45,6 +46,7 @@ public class BackgroundTimerService extends Service {
 
 			public void onFinish() {
 				eventBus.post(new TimerFinishedEvent());
+				stopSelf(startId);
 			}
 		}.start();
 		return START_STICKY_COMPATIBILITY;

@@ -28,6 +28,7 @@
 			android:layout_height="wrap_content"
 			android:text="@{model.prompt}"
 			android:textSize="@dimen/big_text_size"
+			android:gravity="center"
 			/>
 
 		<!--Images adapter-->
@@ -56,6 +57,16 @@
 			android:onClick="@{() -> model.submitAnswer()}"
 			android:enabled="@{model.answerSelected ? true : false}"
 			/>
+
+		<!--Next Button-->
+		<Button
+			android:id="@+id/next_button"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="@string/next"
+			android:onClick="@{() -> model.getNextQuiz()}"
+			/>
+
 
 	</LinearLayout>
 

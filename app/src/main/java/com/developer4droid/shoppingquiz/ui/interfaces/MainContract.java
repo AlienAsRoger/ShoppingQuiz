@@ -14,6 +14,10 @@ public interface MainContract {
 	interface ViewFrame {
 
 		void startQuiz(QuizItem quizItem);
+
+		void showResults();
+
+		void startTimer();
 	}
 
 	interface ActionListener {

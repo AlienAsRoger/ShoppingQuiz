@@ -1,18 +1,19 @@
 package com.developer4droid.shoppingquiz.viewmodel;
 
 import android.databinding.Bindable;
-import android.util.Log;
 import com.developer4droid.shoppingquiz.BR;
 import com.developer4droid.shoppingquiz.application.MyApplication;
-import com.developer4droid.shoppingquiz.events.AnswerSelectedEvent;
-import com.developer4droid.shoppingquiz.events.SubmitAnswerEvent;
-import com.developer4droid.shoppingquiz.events.TimerFinishedEvent;
-import com.developer4droid.shoppingquiz.events.TimerUpdateEvent;
+import com.developer4droid.shoppingquiz.events.*;
 import com.developer4droid.shoppingquiz.model.QuizItem;
 import com.developer4droid.shoppingquiz.ui.interfaces.QuizTryContract;
 import com.developer4droid.shoppingquiz.utils.Utils;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Random;
 
 /**
  * Created with IntelliJ IDEA.
@@ -23,14 +24,16 @@ import org.greenrobot.eventbus.ThreadMode;
 
 public class QuizTryViewModel extends BaseViewModel implements QuizTryContract.ActionListener {
 
-	private QuizTryContract.ViewFrame viewFrame;
-
+	private static final int ANSWER_SIZE = 4;
 	private QuizItem quizItem;
 	private String prompt;
 	private String timer;
 	private boolean isAnswerSelected;
 	private boolean isTimerActive;
 	private String selectedAnswer;
+	private HashMap<Integer, Boolean> answerUsedMap;
+	List<String> answers;
+	private boolean answerGenerated;
 
 	public QuizTryViewModel(QuizItem quizItem) {
 		MyApplication.getInstance().getGlobalComponent().inject(this);
@@ -38,6 +41,8 @@ public class QuizTryViewModel extends BaseViewModel implements QuizTryContract.A
 		this.quizItem = quizItem;
 		setPrompt(quizItem.getName());
 		setTimerActive(true);
+		answerUsedMap = new HashMap<>();
+		answers = new ArrayList<>();
 	}
 
 	@Bindable
@@ -45,7 +50,7 @@ public class QuizTryViewModel extends BaseViewModel implements QuizTryContract.A
 		return prompt;
 	}
 
-	public void setPrompt(String prompt) {
+	private void setPrompt(String prompt) {
 		this.prompt = prompt;
 		notifyPropertyChanged(BR.prompt);
 	}
@@ -55,7 +60,7 @@ public class QuizTryViewModel extends BaseViewModel implements QuizTryContract.A
 		return timer;
 	}
 
-	public void setTimer(String timer) {
+	private void setTimer(String timer) {
 		this.timer = timer;
 		notifyPropertyChanged(BR.timer);
 	}
@@ -65,7 +70,7 @@ public class QuizTryViewModel extends BaseViewModel implements QuizTryContract.A
 		return isAnswerSelected;
 	}
 
-	public void setAnswerSelected(boolean answerSelected) {
+	private void setAnswerSelected(boolean answerSelected) {
 		isAnswerSelected = answerSelected;
 		notifyPropertyChanged(BR.answerSelected);
 	}
@@ -75,7 +80,7 @@ public class QuizTryViewModel extends BaseViewModel implements QuizTryContract.A
 		return isTimerActive;
 	}
 
-	public void setTimerActive(boolean timerActive) {
+	private void setTimerActive(boolean timerActive) {
 		isTimerActive = timerActive;
 		notifyPropertyChanged(BR.timerActive);
 	}
@@ -84,12 +89,42 @@ public class QuizTryViewModel extends BaseViewModel implements QuizTryContract.A
 		eventBus.post(new SubmitAnswerEvent(selectedAnswer));
 	}
 
+	public void getNextQuiz() {
+		eventBus.post(new LoadNextQuizEvent());
+	}
+
 	public void onResume(QuizTryContract.ViewFrame viewFrame) {
-		this.viewFrame = viewFrame;
-		// TODO randomize urls in positions
-//		new Random().nextInt(4)
-		viewFrame.showAnswers(quizItem.getUrls());
 		registerBus();
+
+		generateRandomAnswers(viewFrame);
+		viewFrame.showAnswers(answers);
+	}
+
+	private void generateRandomAnswers(QuizTryContract.ViewFrame viewFrame) {
+		if (answerGenerated) {
+			return;
+		}
+
+		// pre fill with false
+		for (int i = 0; i < ANSWER_SIZE; i++) {
+			answerUsedMap.put(i, false);
+		}
+
+		// generate random order
+		Random random = new Random();
+		for (int i = 0; i < ANSWER_SIZE; i++) {
+			int answerNumber = random.nextInt(ANSWER_SIZE);
+			// loop while we search that we didn't use yet
+			while (answerUsedMap.get(answerNumber)) {
+				answerNumber = random.nextInt(ANSWER_SIZE);
+			}
+			// save to map
+			answerUsedMap.put(answerNumber, true);
+
+			answers.add(quizItem.getUrls().get(answerNumber));
+		}
+
+		answerGenerated = true;
 	}
 
 	// --------- //
@@ -106,18 +141,13 @@ public class QuizTryViewModel extends BaseViewModel implements QuizTryContract.A
 	@SuppressWarnings("unused")
 	@Subscribe(threadMode = ThreadMode.MAIN)
 	public void onEvent(TimerUpdateEvent event) {
-		Log.d("TEST", "TimerUpdateEvent: " + Utils.getTimeFromMilliseconds(event.getMillisecondsLeft()));
-		
 		setTimer(Utils.getTimeFromMilliseconds(event.getMillisecondsLeft()));
 	}
 
 	@SuppressWarnings("unused")
 	@Subscribe(threadMode = ThreadMode.MAIN)
 	public void onEvent(TimerFinishedEvent event) {
-		Log.d("TEST", "TimerFinishedEvent: ");
 		setTimerActive(false);
-
 	}
-
 
 }

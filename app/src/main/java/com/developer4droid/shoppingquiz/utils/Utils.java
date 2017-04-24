@@ -12,6 +12,8 @@ public class Utils {
 	public static String getTimeFromMilliseconds(long timeInMilliSeconds) {
 		long seconds = timeInMilliSeconds / 1000;
 		long minutes = seconds / 60;
-		return  minutes % 60 + ":" + seconds % 60;
+		long secondVal = seconds % 60;
+		String secondsStr = secondVal < 10 ? "0" + secondVal : String.valueOf(secondVal);
+		return minutes % 60 + ":" + secondsStr;
 	}
 }

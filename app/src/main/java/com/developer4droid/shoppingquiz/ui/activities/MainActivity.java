@@ -3,6 +3,7 @@ package com.developer4droid.shoppingquiz.ui.activities;
 import android.content.Intent;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import butterknife.ButterKnife;
 import com.developer4droid.shoppingquiz.R;
@@ -13,7 +14,7 @@ import com.developer4droid.shoppingquiz.ui.fragments.QuizTryFragment;
 import com.developer4droid.shoppingquiz.ui.interfaces.MainContract;
 import com.developer4droid.shoppingquiz.viewmodel.MainViewModel;
 
-public class MainActivity extends BaseActivity implements MainContract.ViewFrame{
+public class MainActivity extends BaseActivity implements MainContract.ViewFrame {
 
 
 	public static final String STARTED = "started";
@@ -75,14 +76,30 @@ public class MainActivity extends BaseActivity implements MainContract.ViewFrame
 	// Interface Implementation //
 	// ------------------------ //
 
+
+	/**
+	 * Start background timer
+	 */
+	@Override
+	public void startTimer() {
+		startService(new Intent(this, BackgroundTimerService.class));
+	}
+
 	@Override
 	public void startQuiz(QuizItem quizItem) {
-		// start background timer
-		startService(new Intent(this, BackgroundTimerService.class));
-
 		// open fragment with quiz
 		FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
 		transaction.replace(R.id.fragment_container, QuizTryFragment.createInstance(quizItem));
 		transaction.commitAllowingStateLoss();
+	}
+
+	@Override
+	public void showResults() {
+		Fragment fragment = getSupportFragmentManager().findFragmentById(R.id.fragment_container);
+		if (fragment != null) {
+			FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+			transaction.remove(fragment);
+			transaction.commitAllowingStateLoss();
+		}
 	}
 }
