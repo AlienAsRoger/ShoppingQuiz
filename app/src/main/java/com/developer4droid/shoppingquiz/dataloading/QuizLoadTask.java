@@ -47,7 +47,7 @@ public class QuizLoadTask extends AsyncTask<AssetManager, Void, List<QuizItem>> 
 	private List<QuizItem> loadJsonFromAsset(AssetManager assetManager) {
 		BaseResponse baseResponse;
 		try {
-			InputStream is = assetManager.open("response.json");
+			InputStream is = assetManager.open("response_full.json");
 
 			int size = is.available();
 			byte[] buffer = new byte[size];

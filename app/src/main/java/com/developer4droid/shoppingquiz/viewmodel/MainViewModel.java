@@ -106,13 +106,6 @@ public class MainViewModel extends BaseViewModel implements MainContract.ActionL
 		setQuizFinished(false);
 		viewFrame.startTimer();
 
-		openQuiz();
-	}
-
-	private void openQuiz() {
-		// mark first one as tried
-		quizTryMap.put(currentQuizItem, true);
-
 		viewFrame.startQuiz(quizItems.get(currentQuizItem));
 	}
 
@@ -147,7 +140,7 @@ public class MainViewModel extends BaseViewModel implements MainContract.ActionL
 			currentQuizItem = entry.getKey();
 		}
 
-		openQuiz();
+		viewFrame.startQuiz(quizItems.get(currentQuizItem));
 	}
 
 	private void onFinished() {
@@ -202,6 +195,7 @@ public class MainViewModel extends BaseViewModel implements MainContract.ActionL
 	@SuppressWarnings("unused")
 	@Subscribe(threadMode = ThreadMode.MAIN)
 	public void onEvent(LoadNextQuizEvent event) {
+		quizTryMap.put(currentQuizItem, true);
 		loadNextQuiz();
 	}
 
