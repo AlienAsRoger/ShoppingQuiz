@@ -16,8 +16,9 @@ import com.developer4droid.shoppingquiz.viewmodel.MainViewModel;
 
 public class MainActivity extends BaseActivity implements MainContract.ViewFrame {
 
-
 	public static final String STARTED = "started";
+	public static final String VM = "view model";
+
 	private ActivityMainBinding binding;
 	private MainViewModel viewModel;
 	private boolean isQuizStarted;
@@ -32,9 +33,13 @@ public class MainActivity extends BaseActivity implements MainContract.ViewFrame
 
 		if (savedInstanceState != null) {
 			isQuizStarted = savedInstanceState.getBoolean(STARTED);
+			MainViewModel restored = savedInstanceState.getParcelable(VM);
+			viewModel = new MainViewModel();
+			viewModel.setQuizStarted(isQuizStarted);
+			viewModel.copyFromRestored(restored);
+		} else {
+			init();
 		}
-
-		init();
 	}
 
 	@Override
@@ -58,6 +63,7 @@ public class MainActivity extends BaseActivity implements MainContract.ViewFrame
 		super.onSaveInstanceState(outState);
 
 		outState.putBoolean(STARTED, viewModel.isQuizStarted());
+		outState.putParcelable(VM, viewModel);
 	}
 
 	// ------------- //

@@ -1,9 +1,12 @@
 package com.developer4droid.shoppingquiz.viewmodel;
 
 import android.databinding.Bindable;
+import android.os.Parcel;
+import android.os.Parcelable;
 import com.developer4droid.shoppingquiz.BR;
 import com.developer4droid.shoppingquiz.application.MyApplication;
 import com.developer4droid.shoppingquiz.events.LoadNextQuizEvent;
+import com.developer4droid.shoppingquiz.events.QuizCompleteEvent;
 import com.developer4droid.shoppingquiz.events.SubmitAnswerEvent;
 import com.developer4droid.shoppingquiz.events.TimerFinishedEvent;
 import com.developer4droid.shoppingquiz.model.QuizItem;
@@ -23,7 +26,8 @@ import java.util.*;
  * Time: 7:44
  */
 
-public class MainViewModel extends BaseViewModel implements MainContract.ActionListener, DataReceiver<List<QuizItem>> {
+public class MainViewModel extends BaseViewModel implements MainContract.ActionListener, DataReceiver<List<QuizItem>>,
+	Parcelable {
 
 	private static final int QUESTIONS_COUNT = 20;
 	private static final int CORRECT = 0; // first one is always correct
@@ -97,6 +101,8 @@ public class MainViewModel extends BaseViewModel implements MainContract.ActionL
 	 */
 	public void startQuiz() {
 		correctAnswersCnt = 0;
+		triesCnt = 0;
+		quizTryMap.clear();
 
 		if (!isQuizStarted) {
 			generateRandomQuestions();
@@ -130,20 +136,22 @@ public class MainViewModel extends BaseViewModel implements MainContract.ActionL
 			return;
 		}
 
+		// search for next not tried quiz
 		for (Map.Entry<Integer, Boolean> entry : quizTryMap.entrySet()) {
 			Boolean isQuizTried = entry.getValue();
-			if (isQuizTried) {
-				continue;
+			if (!isQuizTried) {
+				// set quiz number
+				currentQuizItem = entry.getKey();
+				break;
 			}
-
-			// set quiz number
-			currentQuizItem = entry.getKey();
 		}
 
 		viewFrame.startQuiz(quizItems.get(currentQuizItem));
 	}
 
 	private void onFinished() {
+		eventBus.post(new QuizCompleteEvent());
+
 		setResult("Final score " + correctAnswersCnt + "/" + QUESTIONS_COUNT);    // TODO put in xml and use resources
 		setQuizStarted(false);
 		setQuizFinished(true);
@@ -159,7 +167,7 @@ public class MainViewModel extends BaseViewModel implements MainContract.ActionL
 	public void onResume(MainContract.ViewFrame viewFrame) {
 		this.viewFrame = viewFrame;
 
-		if (!isQuizStarted) {
+		if (!isQuizStarted || quizItems == null) {
 			setLoading(true);
 			dataLoader.loadQuizzes(this);
 		}
@@ -205,5 +213,63 @@ public class MainViewModel extends BaseViewModel implements MainContract.ActionL
 		onFinished();
 	}
 
+	// ---------- //
+	// Parcelable //
+	// ---------- //
+
+	/**
+	 * We need to copy since we need to re-inject items
+	 */
+	public void copyFromRestored(MainViewModel viewModel) {
+		isLoading = viewModel.isLoading;
+		isQuizStarted = viewModel.isQuizStarted;
+		isQuizFinished = viewModel.isQuizFinished;
+		currentQuizItem = viewModel.currentQuizItem;
+		correctAnswersCnt = viewModel.correctAnswersCnt;
+		triesCnt = viewModel.triesCnt;
+		quizTryMap = viewModel.quizTryMap;
+		result = viewModel.result;
+	}
+
+	protected MainViewModel(Parcel in) {
+		isLoading = in.readByte() != 0x00;
+		isQuizStarted = in.readByte() != 0x00;
+		isQuizFinished = in.readByte() != 0x00;
+		currentQuizItem = in.readInt();
+		correctAnswersCnt = in.readInt();
+		triesCnt = in.readInt();
+		quizTryMap = (HashMap) in.readValue(HashMap.class.getClassLoader());
+		result = in.readString();
+	}
+
+	@Override
+	public int describeContents() {
+		return 0;
+	}
+
+	@Override
+	public void writeToParcel(Parcel dest, int flags) {
+		dest.writeByte((byte) (isLoading ? 0x01 : 0x00));
+		dest.writeByte((byte) (isQuizStarted ? 0x01 : 0x00));
+		dest.writeByte((byte) (isQuizFinished ? 0x01 : 0x00));
+		dest.writeInt(currentQuizItem);
+		dest.writeInt(correctAnswersCnt);
+		dest.writeInt(triesCnt);
+		dest.writeValue(quizTryMap);
+		dest.writeString(result);
+	}
+
+	@SuppressWarnings("unused")
+	public static final Parcelable.Creator<MainViewModel> CREATOR = new Parcelable.Creator<MainViewModel>() {
+		@Override
+		public MainViewModel createFromParcel(Parcel in) {
+			return new MainViewModel(in);
+		}
+
+		@Override
+		public MainViewModel[] newArray(int size) {
+			return new MainViewModel[size];
+		}
+	};
 
 }

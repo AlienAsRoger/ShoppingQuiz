@@ -6,9 +6,12 @@ import android.os.Binder;
 import android.os.CountDownTimer;
 import android.os.IBinder;
 import com.developer4droid.shoppingquiz.application.MyApplication;
+import com.developer4droid.shoppingquiz.events.QuizCompleteEvent;
 import com.developer4droid.shoppingquiz.events.TimerFinishedEvent;
 import com.developer4droid.shoppingquiz.events.TimerUpdateEvent;
 import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
 import javax.inject.Inject;
 
@@ -20,6 +23,9 @@ public class BackgroundTimerService extends Service {
 
 	@Inject
 	EventBus eventBus;
+
+	private CountDownTimer countDownTimer;
+	private int startId;
 
 	public BackgroundTimerService() {
 		MyApplication.getInstance().getGlobalComponent().inject(this);
@@ -38,7 +44,11 @@ public class BackgroundTimerService extends Service {
 
 	@Override
 	public int onStartCommand(Intent intent, int flags, final int startId) {
-		new CountDownTimer(QUIZ_TIME, PERIOD) {
+		this.startId = startId;
+		eventBus.unregister(this); // unregister first
+
+		eventBus.register(this);
+		countDownTimer = new CountDownTimer(QUIZ_TIME, PERIOD) {
 
 			public void onTick(long millisUntilFinished) {
 				eventBus.post(new TimerUpdateEvent(millisUntilFinished));
@@ -51,4 +61,14 @@ public class BackgroundTimerService extends Service {
 		}.start();
 		return START_STICKY_COMPATIBILITY;
 	}
+
+	@SuppressWarnings("unused")
+	@Subscribe(threadMode = ThreadMode.MAIN)
+	public void onEvent(QuizCompleteEvent event) {
+		countDownTimer.cancel();
+
+		eventBus.unregister(this);
+		stopSelf(startId);
+	}
+
 }
